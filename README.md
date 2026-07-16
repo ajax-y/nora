@@ -105,3 +105,135 @@ int main(){
 ```
 
 Now it print what you enter after the prompt.
+
+## Infinite Loop
+We know that in shell the prompt keeps showing until we give the exit command, for that purpose we gonna use infinite while loop
+
+```c
+while(1){
+    // Logic here
+}
+```
+
+The code after we include the infinite while loop.
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(){
+
+    char *prompt = "(Nora) $ ";
+    char *command;
+    size_t bufsize = 0;
+    while(1){
+        // Printing the prompt
+        printf("%s",prompt);
+        // Getting the input entered by the user
+        getline(&command, &bufsize, stdin);
+        // Print what we got from the user
+        printf("%s\n", command);
+    }
+    
+    free(command);
+    return 0;
+}
+```
+
+We included the infinite loop, now we need to exit from the shell when we type the command ```exit``` for that I gonna use ```if condition```.
+
+## Condition for Exit
+
+When user enter the command ```exit``` the need to exit, for that purpose we gonna check if the given string is ```exit```.
+
+```c
+if(strcmp(command, "exit")){
+    exit(0);
+}
+```
+
+The code after we include the condition for exit. Before I gonna remove the printf statement and also include the ```fflush(NULL)``` to remove the buffer. Also I removed the newline from the input string
+
+Code after we include the above things,
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h> // Included to compare the string\
+
+int main(){
+    char *prompt = "(Nora) $ ";
+    char *command = NULL;
+    size_t bufsize = 0;
+
+    while(1){
+        // Printing the prompt
+        printf("%s", prompt);
+        // Flush the buffer
+        fflush(NULL);
+        //To get the input from the user and check if the user press Ctrl + D
+        if (getline(&command, &bufsize, stdin) == -1){
+            break;
+        }
+        // Remove the newline from the input string
+        command[strcspn(command, "\n")] = '\0';
+
+        if (command != NULL){
+            // Condition to exit from the program
+            if (strcmp(command, "exit") == 0){
+                break;
+            }
+        }
+    }
+
+    free(command);
+    return 0;
+}
+```
+Also you guys can notice that I initialize the variable command to NULL for the conditions which I used before the exit.
+
+## Unknown Command
+Now we need to diplay the message for the unknown command for that purpose we gonna use else block
+
+```c
+else{
+    printf("Command not found: %s", command);
+}
+```
+
+Code after this,
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(){
+
+    char *prompt = "(Nora) $ ";
+    char *command = NULL;
+    size_t bufsize = 0;
+    while(1){
+        // Printing the prompt
+        printf("%s",prompt);
+        // Force to print the prompt before getting any input
+        fflush(NULL);
+        // Getting the input entered by the user and if the user press Ctrl + D to tell end of the file the program need to exit
+        if(getline(&command, &bufsize, stdin) == -1){
+            break;
+        }
+        // Removing the new line from the string
+        command[strcspn(command, "\n")] = '\0';
+
+        if(command != NULL){
+            if (strcmp(command, "exit") == 0){
+                break;
+            }else{
+                printf("Command not found: %s", command);
+            }
+        }
+    }
+
+    free(command);
+    return 0;
+}
+```
