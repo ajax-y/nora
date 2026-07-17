@@ -1,33 +1,34 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "nora.h"
 
 int main(){
-
-    char *prompt = "(Nora) $ ";
+    // Initializing the prompt
+    char *prompt = "Nora $ ";
     char *command = NULL;
     size_t bufsize = 0;
-    while(1){
-        // Start with space for 16 token
+    // REPL loop
+    while (1){
+        // Default we gonna use size for 16 tokens
         int capacity = 16;
         char **args = malloc(capacity * sizeof(char *));
+        // Check if the memory allocation success
         if (args == NULL){
             printf("Memory Allocation Failed: malloc()");
             exit(0);
         }
         // Printing the prompt
-        printf("%s",prompt);
+        printf("%s", prompt);
         // Force to print the prompt before getting any input
         fflush(stdout);
-        // Getting the input entered by the user and if the user press Ctrl + D to tell end of the file the program need to exit
-        if(getline(&command, &bufsize, stdin) == -1){
-            break;
+        // Getting the input string
+        if (getline(&command, &bufsize, stdin) == -1){
+            free(args);
+            free(command);
+            exit(0);
         }
-        // Removing the new line from the string
+        // Removing the newline from the input string
         command[strcspn(command, "\n")] = '\0';
-        // Tokenizing the input string from the user
+        // Tokenizing the input string
         char *token = strtok(command, " ");
-
         int i = 0;
         while (token != NULL){
             if (i >= capacity - 1){
@@ -35,6 +36,8 @@ int main(){
                 args = realloc(args, capacity * sizeof(char *));
                 if (args == NULL){
                     printf("Memory Allocation Failed: realloc()");
+                    free(args);
+                    free(command);
                     exit(0);
                 }
             }
@@ -44,36 +47,22 @@ int main(){
         }
         args[i] = NULL;
 
-        if(args[0] != NULL){
-            if (strcmp(args[0], "exit") == 0){ // Condition to exit
+        // For commands
+        if (args[0] != NULL){
+            if (strcmp(args[0], "exit") == 0){ // Condition to exit from the shell
                 free(args);
-                break;
-            }else if(strcmp(args[0], "echo") == 0){ // Condition to check if the command is echo
-                for (int j = 1; args[j] != NULL; j++){
-                    printf("%s", args[j]);
-
-                    if (args[j+1] != NULL){
-                        printf(" ");
-                    }
-                }
-                printf("\n");
-            }else if(strcmp(args[0], "type") == 0){ // Condition for type command
-                if(strcmp(args[1], "exit") == 0){
-                    printf("Built-in command: %s\n",args[1]);
-                }else if(strcmp(args[1], "echo") == 0){
-                    printf("Built-in command: %s\n",args[1]);
-                }else if(args[1] == NULL){
-                    printf("Command not provided\n");
-                }else{
-                    printf("Unknow command: %s\n", args[1]);
-                }
-            }
-            else{ // Condition for the invalid commands
-                printf("Command not found: %s\n", args[0]);
+                free(command);
+                exit(0);
+            }else if(strcmp(args[0], "echo") == 0){
+                nora_echo(args);
+            }else if(strcmp(args[0], "type") == 0){
+                nora_type(args);
+            }else{
+                printf("Command Not Found: %s", args[0]);
             }
         }
+        free(args);
     }
-
     free(command);
     return 0;
 }
